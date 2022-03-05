@@ -115,17 +115,71 @@ namespace Roslynator.CSharp
             return NewLinePosition.None;
         }
 
-        public static BlankLineStyle GetBlankLineBetweenUsingDirectiveGroups(this SyntaxNodeAnalysisContext context)
+        public static NewLinePosition GetNullConditionalOperatorNewLinePosition(this AnalyzerConfigOptions configOptions, NewLinePosition defaultValue = NewLinePosition.None)
+        {
+            return (TryGetNewLinePosition(configOptions, ConfigOptions.NullConditionalOperatorNewLine, out NewLinePosition newLinePosition))
+                ? newLinePosition
+                : defaultValue;
+        }
+
+        public static UsingDirectiveBlankLineStyle GetBlankLineBetweenUsingDirectives(this SyntaxNodeAnalysisContext context)
         {
             AnalyzerConfigOptions configOptions = context.GetConfigOptions();
 
-            if (ConfigOptions.TryGetValueAsBool(configOptions, ConfigOptions.BlankLineBetweenUsingDirectiveGroups, out bool addLine))
-                return (addLine) ? BlankLineStyle.Add : BlankLineStyle.Remove;
+            if (ConfigOptions.TryGetValue(configOptions, ConfigOptions.BlankLineBetweenUsingDirectives, out string rawValue))
+            {
+                if (string.Equals(rawValue, ConfigOptionValues.BlankLineBetweenUsingDirectives_Never, StringComparison.OrdinalIgnoreCase))
+                {
+                    return UsingDirectiveBlankLineStyle.Never;
+                }
+                else if (string.Equals(rawValue, ConfigOptionValues.BlankLineBetweenUsingDirectives_SeparateGroups, StringComparison.OrdinalIgnoreCase))
+                {
+                    return UsingDirectiveBlankLineStyle.SeparateGroups;
+                }
+            }
 
             if (ConfigOptions.TryGetValueAsBool(configOptions, LegacyConfigOptions.RemoveEmptyLineBetweenUsingDirectivesWithDifferentRootNamespace, out bool removeLine))
-                return (removeLine) ? BlankLineStyle.Remove : BlankLineStyle.Add;
+                return (removeLine) ? UsingDirectiveBlankLineStyle.Never : UsingDirectiveBlankLineStyle.SeparateGroups;
 
-            return BlankLineStyle.None;
+            return UsingDirectiveBlankLineStyle.None;
+        }
+
+        public static AccessorBracesStyle GetAccessorBracesStyle(this SyntaxNodeAnalysisContext context)
+        {
+            AnalyzerConfigOptions configOptions = context.GetConfigOptions();
+
+            if (ConfigOptions.TryGetValue(configOptions, ConfigOptions.AccessorBracesStyle, out string rawValue))
+            {
+                if (string.Equals(rawValue, ConfigOptionValues.AccessorBracesStyle_MultiLine, StringComparison.OrdinalIgnoreCase))
+                {
+                    return AccessorBracesStyle.MultiLine;
+                }
+                else if (string.Equals(rawValue, ConfigOptionValues.AccessorBracesStyle_SingleLineWhenExpressionIsOnSingleLine, StringComparison.OrdinalIgnoreCase))
+                {
+                    return AccessorBracesStyle.SingleLineWhenExpressionIsOnSingleLine;
+                }
+            }
+
+            return AccessorBracesStyle.None;
+        }
+
+        public static BlockBracesStyle GetBlockBracesStyle(this SyntaxNodeAnalysisContext context)
+        {
+            AnalyzerConfigOptions configOptions = context.GetConfigOptions();
+
+            if (ConfigOptions.TryGetValue(configOptions, ConfigOptions.BlockBracesStyle, out string rawValue))
+            {
+                if (string.Equals(rawValue, ConfigOptionValues.BlockBracesStyle_MultiLine, StringComparison.OrdinalIgnoreCase))
+                {
+                    return BlockBracesStyle.MultiLine;
+                }
+                else if (string.Equals(rawValue, ConfigOptionValues.BlockBracesStyle_SingleLineWhenEmpty, StringComparison.OrdinalIgnoreCase))
+                {
+                    return BlockBracesStyle.SingleLineWhenEmpty;
+                }
+            }
+
+            return BlockBracesStyle.None;
         }
 
         public static BlankLineStyle GetBlankLineBetweenSingleLineAccessors(this SyntaxNodeAnalysisContext context)
@@ -145,13 +199,13 @@ namespace Roslynator.CSharp
         {
             AnalyzerConfigOptions configOptions = context.GetConfigOptions();
 
-            if (ConfigOptions.TryGetValue(configOptions, ConfigOptions.AnonymousFunctionOrMethodGroup, out string rawValue))
+            if (ConfigOptions.TryGetValue(configOptions, ConfigOptions.UseAnonymousFunctionOrMethodGroup, out string rawValue))
             {
-                if (string.Equals(rawValue, ConfigOptionValues.AnonymousFunctionOrMethodGroup_AnonymousFunction, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(rawValue, ConfigOptionValues.UseAnonymousFunctionOrMethodGroup_AnonymousFunction, StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }
-                else if (string.Equals(rawValue, ConfigOptionValues.AnonymousFunctionOrMethodGroup_MethodGroup, StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(rawValue, ConfigOptionValues.UseAnonymousFunctionOrMethodGroup_MethodGroup, StringComparison.OrdinalIgnoreCase))
                 {
                     return false;
                 }
@@ -242,17 +296,17 @@ namespace Roslynator.CSharp
         {
             AnalyzerConfigOptions configOptions = context.GetConfigOptions();
 
-            if (ConfigOptions.TryGetValue(configOptions, ConfigOptions.ConditionInConditionalOperatorParenthesesStyle, out string rawValue))
+            if (ConfigOptions.TryGetValue(configOptions, ConfigOptions.ConditionalOperatorConditionParenthesesStyle, out string rawValue))
             {
-                if (string.Equals(rawValue, ConfigOptionValues.ConditionInConditionalExpressionParenthesesStyle_Include, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(rawValue, ConfigOptionValues.ConditionalOperatorConditionParenthesesStyle_Include, StringComparison.OrdinalIgnoreCase))
                 {
                     return ConditionalExpressionParenthesesStyle.Include;
                 }
-                else if (string.Equals(rawValue, ConfigOptionValues.ConditionInConditionalExpressionParenthesesStyle_Omit, StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(rawValue, ConfigOptionValues.ConditionalOperatorConditionParenthesesStyle_Omit, StringComparison.OrdinalIgnoreCase))
                 {
                     return ConditionalExpressionParenthesesStyle.Omit;
                 }
-                else if (string.Equals(rawValue, ConfigOptionValues.ConditionInConditionalExpressionParenthesesStyle_OmitWhenConditionIsSingleToken, StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(rawValue, ConfigOptionValues.ConditionalOperatorConditionParenthesesStyle_OmitWhenConditionIsSingleToken, StringComparison.OrdinalIgnoreCase))
                 {
                     return ConditionalExpressionParenthesesStyle.OmitWhenConditionIsSingleToken;
                 }
@@ -409,6 +463,11 @@ namespace Roslynator.CSharp
         public static NewLinePosition GetBinaryExpressionNewLinePosition(this SyntaxNodeAnalysisContext context)
         {
             return context.GetConfigOptions().GetBinaryOperatorNewLinePosition();
+        }
+
+        public static NewLinePosition GetNullConditionalOperatorNewLinePosition(this SyntaxNodeAnalysisContext context, NewLinePosition defaultValue = NewLinePosition.None)
+        {
+            return context.GetConfigOptions().GetNullConditionalOperatorNewLinePosition(defaultValue);
         }
 
         private static bool TryGetNewLinePosition(

@@ -17,14 +17,14 @@ namespace Roslynator.CSharp.Analysis.Tests
 
         public override CSharpTestOptions Options
         {
-            get { return base.Options.EnableConfigOption(ConfigOptionKeys.PreferBlockBodyWhenExpressionSpansOverMultipleLines); }
+            get { return base.Options.EnableConfigOption(ConfigOptionKeys.UseBlockBodyWhenExpressionSpansOverMultipleLines); }
         }
 
         private CSharpTestOptions Options_ConvertExpressionBodyToBlockBodyWhenExpressionIsMultiLine
-            => _options_ConvertExpressionBodyToBlockBodyWhenExpressionIsMultiLine ??= Options.EnableConfigOption(ConfigOptionKeys.PreferBlockBodyWhenExpressionSpansOverMultipleLines);
+            => _options_ConvertExpressionBodyToBlockBodyWhenExpressionIsMultiLine ??= Options.EnableConfigOption(ConfigOptionKeys.UseBlockBodyWhenExpressionSpansOverMultipleLines);
 
         private CSharpTestOptions Options_ConvertExpressionBodyToBlockBodyWhenDeclarationIsMultiLine
-            => _options_ConvertExpressionBodyToBlockBodyWhenDeclarationIsMultiLine ??= Options.EnableConfigOption(ConfigOptionKeys.PreferBlockBodyWhenDeclarationSpansOverMultipleLines);
+            => _options_ConvertExpressionBodyToBlockBodyWhenDeclarationIsMultiLine ??= Options.EnableConfigOption(ConfigOptionKeys.UseBlockBodyWhenDeclarationSpansOverMultipleLines);
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseBlockBodyOrExpressionBody)]
         public async Task Test_Method_MultilineExpression()
@@ -309,6 +309,30 @@ class C
         object y)
     {
         return M(x, y);
+    }
+}
+", options: Options_ConvertExpressionBodyToBlockBodyWhenDeclarationIsMultiLine);
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseBlockBodyOrExpressionBody)]
+        public async Task Test_Method_Multiline_WithComment()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    object M(string p)
+        [|=> M(
+            // x
+            p)|];
+}
+", @"
+class C
+{
+    object M(string p)
+    {
+        return M(
+            // x
+            p);
     }
 }
 ", options: Options_ConvertExpressionBodyToBlockBodyWhenDeclarationIsMultiLine);

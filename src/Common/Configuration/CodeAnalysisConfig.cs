@@ -71,18 +71,18 @@ namespace Roslynator.Configuration
             if (_editorConfigBoolOptions.TryGetValue(ConfigOptionKeys.CompilerDiagnosticFixesEnabled, out bool compilerDiagnosticFixesEnabled))
                 CompilerDiagnosticFixesEnabled = compilerDiagnosticFixesEnabled;
 
-            bool? prefixFieldIdentifierWithUnderscore = XmlConfig.PrefixFieldIdentifierWithUnderscore;
+            PrefixFieldIdentifierWithUnderscore = XmlConfig.PrefixFieldIdentifierWithUnderscore;
 
             if (EditorConfig.PrefixFieldIdentifierWithUnderscore != null)
-                prefixFieldIdentifierWithUnderscore = EditorConfig.PrefixFieldIdentifierWithUnderscore;
+                PrefixFieldIdentifierWithUnderscore = EditorConfig.PrefixFieldIdentifierWithUnderscore;
 
             if (VisualStudioConfig.PrefixFieldIdentifierWithUnderscore != ConfigOptionDefaultValues.PrefixFieldIdentifierWithUnderscore)
-                prefixFieldIdentifierWithUnderscore = VisualStudioConfig.PrefixFieldIdentifierWithUnderscore;
+                PrefixFieldIdentifierWithUnderscore = VisualStudioConfig.PrefixFieldIdentifierWithUnderscore;
 
-            int? maxLineLength = XmlConfig.MaxLineLength;
+            MaxLineLength = XmlConfig.MaxLineLength;
 
             if (EditorConfig.MaxLineLength != null)
-                maxLineLength = EditorConfig.MaxLineLength;
+                MaxLineLength = EditorConfig.MaxLineLength;
 
             var refactorings = new Dictionary<string, bool>();
             SetRefactorings(refactorings, XmlConfig.Refactorings);
@@ -149,16 +149,17 @@ namespace Roslynator.Configuration
             return (!Refactorings.TryGetValue(id, out bool enabled)) || enabled;
         }
 
-        public DiagnosticSeverity? GetDiagnosticSeverity(string id, string category)
+        public DiagnosticSeverity? GetDiagnosticSeverity(string id, string category, bool isEnabledByDefault)
         {
-            return EditorConfig.GetDiagnosticSeverity(id, category)
+            return EditorConfig.GetDiagnosticSeverity(id, category, isEnabledByDefault)
                 ?? XmlConfig.GetDiagnosticSeverity(id);
         }
 
-        public bool? IsDiagnosticEnabled(string id, string category)
+        public bool IsDiagnosticEnabledByDefault(string id, string category, bool defaultValue)
         {
-            return EditorConfig.IsDiagnosticEnabled(id, category)
-                ?? XmlConfig.IsDiagnosticEnabled(id);
+            return EditorConfig.IsDiagnosticEnabledByDefault(id, category, defaultValue)
+                ?? XmlConfig.IsDiagnosticEnabledByDefault(id)
+                ?? defaultValue;
         }
     }
 }

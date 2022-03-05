@@ -202,7 +202,6 @@ namespace Roslynator.CodeGeneration.Markdown
                 Table(
                     TableRow("Property", "Value"),
                     TableRow("Id", analyzer.Id),
-                    TableRow("Category", analyzer.Category),
                     TableRow("Severity", (analyzer.IsEnabledByDefault) ? analyzer.DefaultSeverity : "None"),
                     (!string.IsNullOrEmpty(analyzer.MinLanguageVersion)) ? TableRow("Minimum language version", analyzer.MinLanguageVersion) : null,
                     (requiredOptions.Any()) ? TableRow("Required option", Join(" or ", requiredOptions)) : null
@@ -308,13 +307,12 @@ namespace Roslynator.CodeGeneration.Markdown
                 Heading2(title),
                 Link("Search Analyzers", "http://pihrt.net/Roslynator/Analyzers"),
                 Table(
-                    TableRow("Id", "Title", "Category", "Severity"),
+                    TableRow("Id", "Title", "Severity"),
                     analyzers.OrderBy(f => f.Id, comparer).Select(f =>
                     {
                         return TableRow(
                             f.Id,
                             Link(f.Title.TrimEnd('.'), $"../../docs/analyzers/{f.Id}.md"),
-                            f.Category,
                             (f.IsEnabledByDefault) ? f.DefaultSeverity : "None");
                     })));
 
@@ -367,36 +365,6 @@ namespace Roslynator.CodeGeneration.Markdown
             }
         }
 
-        public static string CreateAnalyzersByCategoryMarkdown(IEnumerable<AnalyzerMetadata> analyzers, IComparer<string> comparer)
-        {
-            MDocument document = Document(
-                Heading2("Roslynator Analyzers by Category"),
-                Table(
-                    TableRow("Category", "Title", "Id", "Severity"),
-                    GetRows()));
-
-            document.AddFootnote();
-
-            return document.ToString();
-
-            IEnumerable<MTableRow> GetRows()
-            {
-                foreach (IGrouping<string, AnalyzerMetadata> grouping in analyzers
-                    .GroupBy(f => MarkdownEscaper.Escape(f.Category))
-                    .OrderBy(f => f.Key, comparer))
-                {
-                    foreach (AnalyzerMetadata analyzer in grouping.OrderBy(f => f.Title, comparer))
-                    {
-                        yield return TableRow(
-                            grouping.Key,
-                            Link(analyzer.Title.TrimEnd('.'), $"../../docs/analyzers/{analyzer.Id}.md"),
-                            analyzer.Id,
-                            (analyzer.IsEnabledByDefault) ? analyzer.DefaultSeverity : "None");
-                    }
-                }
-            }
-        }
-
         private static IEnumerable<MElement> CreateSummary(string summary)
         {
             if (!string.IsNullOrEmpty(summary))
@@ -423,7 +391,7 @@ namespace Roslynator.CodeGeneration.Markdown
                     {
                         string optionKey = en.Current.Key;
                         string title = en.Current.Description;
-                        string summary = null;
+                        const string summary = null;
                         string defaultValue = en.Current.DefaultValuePlaceholder;
 
                         yield return Heading3(title?.TrimEnd('.'));
